@@ -1,76 +1,76 @@
-
-let store = {
-  drivers: [],
-  passengers: [],
-  trips: []
-};
-
 let driverId = 0;
-
-class Driver {
-  constructor(name) {
-    this.name = name;
-    this.id = ++driverId;
-
-    store.drivers.push(this);
-  }
-
-  trips() {
-    return store.trips.filter(trip => {
-      return trip.driverId == this.id;
-    });
-  }
-
-  passengers() {
-    return this.trips().map(trip => {
-      return trip.passenger();
-    });
-  }
-}
-
+let tripId = 0;
 let passengerId = 0;
 
-class Passenger {
-  constructor(name) {
-    this.name = name;
-    this.id = ++passengerId;
+const store = {
+	drivers: [],
+	trips: [],
+	passengers: []
+};
 
-    store.passengers.push(this);
-  }
+class Driver {
+	constructor(name) {
+		this.id = ++driverId;
+		this.name = name;
+		store.drivers.push(this);
+	}
 
-  trips() {
-    return store.trips.filter(trip => {
-      return trip.passengerId == this.id;
-    });
-  }
+	trips() {
+		return store.trips.filter(trip => trip.driverId === this.id);
+	}
 
-  drivers() {
-    return this.trips().map(trip => {
-      return trip.driver();
-    });
-  }
+	passengers() {
+		let driverTrips = this.trips(); // [{id, driverId, passengerId}, {id, driverId, passengerId}, ...]
+		let passengers = [];
+		driverTrips.forEach(
+			function(dt) {
+				let a = store.passengers.find(p => p.id === dt.passengerId);
+				passengers.push(a);
+			}
+		)
+
+		return passengers;
+	}
 }
 
-let tripId = 0;
+class Passenger {
+	constructor(name) {
+		this.id = ++passengerId;
+		this.name = name;
+		store.passengers.push(this);
+	}
+
+	trips() {
+		return store.trips.filter(trip => trip.passengerId === this.id);
+	}
+
+	drivers() {
+		let passengerTrips = this.trips(); // [{id, driverId, passengerId}, {id, driverId, passengerId}, ...]
+		let drivers = [];
+		passengerTrips.forEach(
+			function(dt) {
+				let a = store.drivers.find(p => p.id === dt.driverId);
+				drivers.push(a);
+			}
+		)
+
+		return drivers;
+	}
+}
 
 class Trip {
-  constructor(driver, passenger) {
-    this.driverId = driver.id;
-    this.passengerId = passenger.id;
-    this.id = tripId++;
+	constructor(driver, passenger) {
+		this.id = ++tripId;
+		this.driverId = driver.id;
+		this.passengerId = passenger.id;
+		store.trips.push(this);
+	}
 
-    store.trips.push(this);
-  }
+	driver() {
+		return store.drivers.find(driver => driver.id === this.driverId);
+	}
 
-  driver() {
-    return store.drivers.find(driver => {
-      return driver.id === this.driverId;
-    });
-  }
-  
-  passenger() {
-    return store.passengers.find(passenger => {
-      return passenger.id === this.passengerId;
-    });
-  }
+	passenger() {
+		return store.passengers.find(passenger => passenger.id === this.passengerId);
+	}
 }
